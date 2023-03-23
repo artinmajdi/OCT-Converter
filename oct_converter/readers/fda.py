@@ -84,8 +84,8 @@ class FDA(object):
                     chunk_location = f.tell()
                     f.seek(chunk_size, 1)
                     chunk_dict[chunk_name] = [chunk_location, chunk_size]
-        print('File {} contains the following chunks:'.format(self.filepath))
-        for key in chunk_dict.keys():
+        print(f'File {self.filepath} contains the following chunks:')
+        for key in chunk_dict:
             print(key)
         return chunk_dict
 
@@ -109,8 +109,7 @@ class FDA(object):
                 raw_slice= f.read(size)
                 slice = decode(raw_slice)
                 volume[:,:,i] = slice
-        oct_volume = OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
-        return oct_volume
+        return OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
 
     def read_oct_volume_2(self):
         """ Reads OCT data.
@@ -131,8 +130,7 @@ class FDA(object):
             volume = np.array(raw_volume)
             volume = volume.reshape(oct_header.width, oct_header.height, oct_header.number_slices, order='F')
             volume = np.transpose(volume, [1, 0, 2])
-        oct_volume = OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
-        return oct_volume
+        return OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
 
     def read_fundus_image(self):
         """ Reads fundus image.
@@ -150,5 +148,4 @@ class FDA(object):
             number_pixels = fundus_header.width * fundus_header.height * 3
             raw_image = f.read(fundus_header.size)
             image = decode(raw_image)
-        fundus_image = FundusImageWithMetaData(image)
-        return fundus_image
+        return FundusImageWithMetaData(image)

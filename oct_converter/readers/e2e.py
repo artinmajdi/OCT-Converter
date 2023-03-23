@@ -93,11 +93,12 @@ class E2E(object):
         """
         def _make_lut():
             LUT = []
-            for i in range(0,pow(2,16)):
+            for i in range(pow(2,16)):
                 LUT.append(self.uint16_to_ufloat16(i))
             return np.array(LUT)
+
         LUT = _make_lut() 
-               
+
 
         with open(self.filepath, 'rb') as f:
             raw = f.read(36)
@@ -183,15 +184,15 @@ class E2E(object):
 
                         image = 256 * pow(image, 1.0 / 2.4)
 
-                        if volume_string in volume_array_dict.keys():
+                        if volume_string in volume_array_dict:
                             volume_array_dict[volume_string][int(chunk.slice_id / 2) - 1] = image
                         else:
                             # try to capture these additional images
-                            if volume_string in volume_array_dict_additional.keys():
+                            if volume_string in volume_array_dict_additional:
                                 volume_array_dict_additional[volume_string].append(image)
                             else:
                                 volume_array_dict_additional[volume_string] = [image]
-                            #print('Failed to save image data for volume {}'.format(volume_string))
+                                                #print('Failed to save image data for volume {}'.format(volume_string))
 
             oct_volumes = []
             for key, volume in chain(volume_array_dict.items(), volume_array_dict_additional.items()):
@@ -234,7 +235,7 @@ class E2E(object):
                 raw = f.read(52)
                 directory_chunk = self.main_directory_structure.parse(raw)
 
-                for ii in range(directory_chunk.num_entries):
+                for _ in range(directory_chunk.num_entries):
                     raw = f.read(44)
                     chunk = self.sub_directory_structure.parse(raw)
                     if chunk.start > chunk.pos:
@@ -253,10 +254,10 @@ class E2E(object):
                     raw = f.read(20)
                     try:
                         laterality_data = self.lat_structure.parse(raw)
-                        if laterality_data.laterality == 82:
-                            self.laterality = 'R'
-                        elif laterality_data.laterality == 76:
+                        if laterality_data.laterality == 76:
                             self.laterality = 'L'
+                        elif laterality_data.laterality == 82:
+                            self.laterality = 'R'
                     except:
                         self.laterality = None
 
@@ -269,14 +270,16 @@ class E2E(object):
                     if chunk.ind == 0:  # fundus data
                         raw_volume = np.frombuffer(f.read(count), dtype=np.uint8)
                         image = np.array(raw_volume).reshape(image_data.height,image_data.width)
-                        image_string = '{}_{}_{}'.format(chunk.patient_id, chunk.study_id, chunk.series_id)
+                        image_string = f'{chunk.patient_id}_{chunk.study_id}_{chunk.series_id}'
                         image_array_dict[image_string] = image
 
 
-            fundus_images = []
-            for key, image in image_array_dict.items():
-                fundus_images.append(FundusImageWithMetaData(image=image, patient_id=key, laterality= self.laterality))
-
+            fundus_images = [
+                FundusImageWithMetaData(
+                    image=image, patient_id=key, laterality=self.laterality
+                )
+                for key, image in image_array_dict.items()
+            ]
         return fundus_images
 
     def read_custom_float(self, bytes):
@@ -301,8 +304,7 @@ class E2E(object):
         # convert to decimal representations
         mantissa_sum = 1 + int(mantissa, 2) / self.power
         exponent_sum = int(exponent[::-1], 2) - 63
-        decimal_value = mantissa_sum * pow(2, exponent_sum)
-        return decimal_value
+        return mantissa_sum * pow(2, exponent_sum)
 
     def uint16_to_ufloat16(self, uint16):
         """ Implementation of bespoke float type used in .e2e files.
@@ -325,5 +327,4 @@ class E2E(object):
         # convert to decimal representations
         mantissa_sum = 1 + int(mantissa, 2) / self.power
         exponent_sum = int(exponent, 2) - 63
-        decimal_value = mantissa_sum * np.float_power(2, exponent_sum)
-        return decimal_value
+        return mantissa_sum * np.float_power(2, exponent_sum)

@@ -44,8 +44,8 @@ class OCTVolumeWithMetaData(object):
             plt.subplot(rows, cols, i +1)
             plt.imshow(self.volume[slices_indices[i]],cmap='gray')
             plt.axis('off')
-            plt.title('{}'.format(slices_indices[i]))
-        plt.suptitle('OCT volume with {} slices.'.format(self.num_slices))
+            plt.title(f'{slices_indices[i]}')
+        plt.suptitle(f'OCT volume with {self.num_slices} slices.')
 
         if filepath is not None:
             plt.savefig(filepath)
@@ -67,24 +67,27 @@ class OCTVolumeWithMetaData(object):
             video_writer.close()
         elif extension.lower() in IMAGE_TYPES:
             base = os.path.splitext(os.path.basename(filepath))[0]
-            print('Saving OCT as sequential slices {}_[1..{}]{}'.format(base, len(self.volume), extension))
+            print(
+                f'Saving OCT as sequential slices {base}_[1..{len(self.volume)}]{extension}'
+            )
             full_base = os.path.splitext(filepath)[0]
             self.volume = np.array(self.volume).astype("float64")
             self.volume *= 255.0/self.volume.max()
             for index, slice in enumerate(self.volume):
-                filename = '{}_{}{}'.format(full_base, index, extension)
+                filename = f'{full_base}_{index}{extension}'
                 cv2.imwrite(filename, slice)
         elif extension.lower() == '.npy':
             np.save(filepath, self.volume)
         else:
-            raise NotImplementedError('Saving with file extension {} not supported'.format(extension))
+            raise NotImplementedError(
+                f'Saving with file extension {extension} not supported'
+            )
 
 
     def get_projection(self):
         """Produces a 2D projection image from the volume.
         """
-        projection = np.mean(self.volume, axis=1)
-        return projection
+        return np.mean(self.volume, axis=1)
 
     def save_projection(self, filepath):
         """Save a 2D projection image from the volume.
@@ -93,9 +96,10 @@ class OCTVolumeWithMetaData(object):
             filepath (str): Location to save volume to. Extension must be in IMAGE_TYPES.
         """
         extension = os.path.splitext(filepath)[1]
-        if extension.lower() in IMAGE_TYPES:
-            projection = self.get_projection()
-            projection = 255* projection/projection.max()
-            cv2.imwrite(filepath, projection.astype(int))
-        else:
-            raise NotImplementedError('Saving with file extension {} not supported'.format(extension))
+        if extension.lower() not in IMAGE_TYPES:
+            raise NotImplementedError(
+                f'Saving with file extension {extension} not supported'
+            )
+        projection = self.get_projection()
+        projection = 255* projection/projection.max()
+        cv2.imwrite(filepath, projection.astype(int))
