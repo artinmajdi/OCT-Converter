@@ -36,4 +36,6 @@ class FundusImageWithMetaData(object):
         elif extension.lower() == '.npy':
             np.save(filepath, self.image)
         else:
-            raise NotImplementedError('Saving with file extension {} not supported'.format(extension))
+            raise NotImplementedError(
+                f'Saving with file extension {extension} not supported'
+            )

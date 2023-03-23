@@ -6,8 +6,8 @@ file = E2E(filepath)
 oct_volumes = file.read_oct_volume()  # returns a list of all OCT volumes with additional metadata if available
 for volume in oct_volumes:
     volume.peek() # plots a montage of the volume
-    volume.save('{}.avi'.format(volume.patient_id))
+    volume.save(f'{volume.patient_id}.avi')
 
 fundus_images = file.read_fundus_image() #returns a list of all fundus images with additional metadata if available
 for image in fundus_images:
-    image.save('{}.png'.format(image.patient_id))
+    image.save(f'{image.patient_id}.png')

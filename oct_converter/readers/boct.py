@@ -146,10 +146,22 @@ class BOCT(object):
             scancount=1
         self.volume_shape = (framecount,scancount,self.frames.Ascans,self.frames.depth)
         self.vol_frames_shape = (self.volume_shape[0],self.volume_shape[1])
-        
+
         ##Index conversion between 3D framestack (z+t,y,x) and 4D volume (t,z,x,y)
-        stack_to_vol = np.asarray([i+j*(framecount) for i in range(0,framecount) for j in range(0,scancount)])
-        vol_to_stack = np.asarray([i+j*(scancount) for i in range(0,scancount) for j in range(0,framecount)])
+        stack_to_vol = np.asarray(
+            [
+                i + j * (framecount)
+                for i in range(framecount)
+                for j in range(scancount)
+            ]
+        )
+        vol_to_stack = np.asarray(
+            [
+                i + j * (scancount)
+                for i in range(scancount)
+                for j in range(framecount)
+            ]
+        )
         self.indicies = {'to_vol':stack_to_vol,
                         'to_stack':vol_to_stack}
         self._loaded = False
@@ -194,8 +206,7 @@ class OCTFrame:
 
     def from_bytes(self,f):
         f.seek(self.abs_pos,0)
-        im = np.fromfile(f, dtype=np.uint16, count=self.count)
-        return im
+        return np.fromfile(f, dtype=np.uint16, count=self.count)
 
     def load(self,f,imsize):
         return np.resize(self.from_bytes(f),imsize)

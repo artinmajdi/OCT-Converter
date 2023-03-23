@@ -34,5 +34,4 @@ class IMG(object):
                 interlaced = np.rot90(interlaced, axes=(0, 1))
                 volume = interlaced
 
-        oct_volume = OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
-        return oct_volume
+        return OCTVolumeWithMetaData([volume[:, :, i] for i in range(volume.shape[2])])
